@@ -1,66 +1,56 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include<stdio.h>
+#include<stdlib.h>
 
-struct Item {
-    int w, v; // weight, value
-};
+int T[10][10], V[10] = {0}, W[10] = {0};
 
-int mx(int a, int b) {
-    return (a > b) ? a : b;
+int max(int a, int b){
+    if (a>b)    return a;
+    else    return b;
 }
 
-int k(int c, const struct Item it[], int n, int** m) {
-    if (n == 0 || c == 0) {
-        return 0;
+int knap(int i, int j){
+    int value;
+    if (T[i][j] == -1){
+        if ( j < W[i] )
+            value = knap(i-1, j);
+        else
+            value = max(knap(i-1, j) , V[i] + knap(i-1, j-W[i]));
+        T[i][j] = value;
     }
-
-    if (m[n][c] != -1) {
-        return m[n][c];
-    }
-
-    if (it[n - 1].w > c) {
-        m[n][c] = k(c, it, n - 1, m);
-    } else {
-        m[n][c] = mx(it[n - 1].v + k(c - it[n - 1].w, it, n - 1, m), k(c, it, n - 1, m));
-    }
-
-    return m[n][c];
+    return T[i][j];
 }
 
-int knapsack(int c, const struct Item it[], int n) {
-    int** m = (int**)malloc((n + 1) * sizeof(int*));
-    for (int i = 0; i <= n; i++) {
-        m[i] = (int*)malloc((c + 1) * sizeof(int));
-        for (int j = 0; j <= c; j++) {
-            m[i][j] = -1;
+void main(){
+    int n, m;
+    printf("Enter num of items >> ");
+    scanf("%d", &n);
+    printf("Enter capacity of sack >> ");
+    scanf("%d", &m);
+    printf("Enter weight and value >>\n");
+    for(int i = 1; i<n+1; ++i)  
+        scanf("%d%d", &W[i], &V[i]);
+
+    for(int i = 0; i<n+1; ++i){
+        for(int j = 0; j<m+1; ++j){
+            if ( i == 0 || j == 0 )
+                T[i][j] = 0;
+            else 
+                T[i][j] = -1;
         }
     }
 
-    int r = k(c, it, n, m);
-
-    for (int i = 0; i <= n; i++) {
-        free(m[i]);
+    printf("\nMaximum value of sack >> %d\n", knap(n, m));
+    printf("TABLE --> \n");
+    for(int i = 0; i<n+1; ++i){
+        for(int j = 0; j<m+1; ++j)
+            printf("%d\t", T[i][j]);
+        printf("\n");
     }
-    free(m);
-
-    return r;
-}
-
-int main() {
-    int c, n;
-    printf("Enter knapsack capacity: ");
-    scanf("%d", &c);
-
-    printf("Enter number of items: ");
-    scanf("%d", &n);
-
-    struct Item it[n];
-    printf("Enter weight and value for each item:\n");
-    for (int i = 0; i < n; i++) {
-        scanf("%d %d", &it[i].w, &it[i].v);
+    printf("\nComposition of sack >> \n");
+    for(int i = n; i>0; --i){
+        if ( T[i][m] != T[i-1][m] ){
+            printf("%d  ", i);
+            m = m - W[i];
+        }
     }
-
-    printf("Maximum value that can be achieved: %d\n", knapsack(c, it, n));
-
-    return 0;
 }
